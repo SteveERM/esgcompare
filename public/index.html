@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Project Prioritization App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/app.js" async defer></script>
 </head>
 <body>
@@ -18,8 +19,30 @@
         </table>
         <h2>Add Project</h2>
         <input type="text" id="project_name" placeholder="Project Name">
-        <input type="text" id="project_priority" placeholder="Priority">
+        <div id="criteria_container">
+            <h3>Criteria</h3>
+            <div><input type="text" class="criteria" placeholder="Criteria 1"></div>
+            <div><input type="text" class="criteria" placeholder="Criteria 2"></div>
+        </div>
+        <button onclick="addCriteria()">Add Criteria</button>
+        <input type="text" id="project_priority" placeholder="Priority (Weighting)">
         <button onclick="addProject()">Add Project</button>
+        
+        <h2>Respondents</h2>
+        <div id="respondents_container">
+            <input type="text" class="respondent" placeholder="Respondent Name">
+        </div>
+        <button onclick="addRespondent()">Add Respondent</button>
+        <button onclick="rankProjects()">Rank Projects</button>
+        
+        <h2>Results</h2>
+        <canvas id="results_chart"></canvas>
+        <h2>Adjust Priorities</h2>
+        <div id="priority_adjustments">
+            <div><input type="number" id="priority_criteria1" placeholder="Priority for Criteria 1"></div>
+            <div><input type="number" id="priority_criteria2" placeholder="Priority for Criteria 2"></div>
+        </div>
+        <button onclick="adjustPriorities()">Adjust Priorities</button>
     </div>
 </body>
 </html>
