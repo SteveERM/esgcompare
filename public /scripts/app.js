@@ -47,4 +47,3 @@ async function addProject() {
         console.error('Error adding project:', error);
     }
 }
-
