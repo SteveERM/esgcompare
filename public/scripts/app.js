@@ -157,4 +157,6 @@ function adjustPriorities() {
     // Update chart data and refresh
     const chart = Chart.getChart('results_chart');
     chart.data.datasets[0].data = chart.data.datasets[0].data.map(value => value * (priority1 / 100));
-    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2
+    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2 / 100));
+    chart.update();
+}
