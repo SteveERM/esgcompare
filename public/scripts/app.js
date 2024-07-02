@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM fully loaded and parsed');
     setBuildDate(); // Set the build date on the screen
     loadProjects();
 });
@@ -9,9 +10,12 @@ function setBuildDate() {
 }
 
 async function loadProjects() {
+    console.log('Loading projects...');
     try {
         const response = await fetch('/projects');
+        console.log('Response received:', response);
         const projects = await response.json();
+        console.log('Projects:', projects);
         const table = document.getElementById('projects_table');
         table.innerHTML = '<tr><th>Project</th><th>Priority</th></tr>';
         projects.forEach(project => {
@@ -30,6 +34,8 @@ async function addProject() {
     const project = document.getElementById('project_name').value;
     const priority = document.getElementById('project_priority').value;
 
+    console.log('Adding project:', project, priority);
+
     try {
         const response = await fetch('/projects', {
             method: 'POST',
@@ -39,6 +45,7 @@ async function addProject() {
             body: JSON.stringify({ project, priority })
         });
         if (response.ok) {
+            console.log('Project added successfully');
             loadProjects();
         } else {
             console.error('Error adding project:', await response.text());
