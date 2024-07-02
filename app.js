@@ -45,13 +45,14 @@ app.get('/projects', async (req, res) => {
 });
 
 app.post('/projects', async (req, res) => {
-    const { project, priority } = req.body;
+    const { project, priority, criteria } = req.body;
     try {
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input('project', sql.VarChar, project)
             .input('priority', sql.Int, priority)
-            .query('INSERT INTO Projects (Project, Priority) VALUES (@project, @priority)');
+            .input('criteria', sql.VarChar, JSON.stringify(criteria))
+            .query('INSERT INTO Projects (Project, Priority, Criteria) VALUES (@project, @priority, @criteria)');
         res.send(result);
     } catch (error) {
         res.status(500).send(error);
