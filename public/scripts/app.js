@@ -1,151 +1,158 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded and parsed');
-    setBuildDate(); // Set the build date on the screen
     loadProjects();
+    loadCriteria();
+    loadRespondents();
 });
 
-function setBuildDate() {
-    const buildDate = new Date().toISOString();
-    document.getElementById('build_date').innerText = `Build Date: ${buildDate}`;
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].style.backgroundColor = "";
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.style.backgroundColor = "#777";
 }
 
+// Load projects, criteria, and respondents
 async function loadProjects() {
-    console.log('Loading projects...');
     try {
         const response = await fetch('/projects');
-        console.log('Response received:', response);
         const projects = await response.json();
-        console.log('Projects:', projects);
-        const table = document.getElementById('projects_table');
-        table.innerHTML = '<tr><th>Project</th><th>Priority</th></tr>';
+        const projectsBody = document.getElementById('projects_body');
+        projectsBody.innerHTML = '';
         projects.forEach(project => {
-            const row = table.insertRow(-1);
-            const cell1 = row.insertCell(0);
-            const cell2 = row.insertCell(1);
-            cell1.innerText = project.Project;
-            cell2.innerText = project.Priority;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td contenteditable="true">${project.Project}</td>
+                <td contenteditable="true">${project.Priority}</td>
+            `;
+            projectsBody.appendChild(row);
         });
     } catch (error) {
         console.error('Error loading projects:', error);
     }
 }
 
-async function addProject() {
-    const project = document.getElementById('project_name').value;
-    const priority = document.getElementById('project_priority').value;
-    const criteriaElements = document.querySelectorAll('.criteria');
-    const criteria = Array.from(criteriaElements).map(el => el.value);
+async function loadCriteria() {
+    try {
+        const response = await fetch('/criteria');
+        const criteria = await response.json();
+        const criteriaBody = document.getElementById('criteria_body');
+        criteriaBody.innerHTML = '';
+        criteria.forEach(criterion => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td contenteditable="true">${criterion.Name}</td>
+                <td contenteditable="true">${criterion.Weight}</td>
+            `;
+            criteriaBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading criteria:', error);
+    }
+}
 
-    console.log('Adding project:', project, priority, criteria);
+async function loadRespondents() {
+    try {
+        const response = await fetch('/respondents');
+        const respondents = await response.json();
+        const respondentsBody = document.getElementById('respondents_body');
+        respondentsBody.innerHTML = '';
+        respondents.forEach(respondent => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td contenteditable="true">${respondent.Name}</td>`;
+            respondentsBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading respondents:', error);
+    }
+}
+
+// Commit changes
+async function commitProjects() {
+    const rows = document.querySelectorAll('#projects_body tr');
+    const projects = Array.from(rows).map(row => {
+        return {
+            Project: row.cells[0].innerText,
+            Priority: row.cells[1].innerText
+        };
+    });
 
     try {
         const response = await fetch('/projects', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ project, priority, criteria })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projects })
         });
         if (response.ok) {
-            console.log('Project added successfully');
+            console.log('Projects updated successfully');
             loadProjects();
         } else {
-            console.error('Error adding project:', await response.text());
+            console.error('Error updating projects:', await response.text());
         }
     } catch (error) {
-        console.error('Error adding project:', error);
+        console.error('Error updating projects:', error);
     }
 }
 
-function addCriteria() {
-    const criteriaContainer = document.getElementById('criteria_container');
-    const newCriteria = document.createElement('div');
-    newCriteria.innerHTML = `<input type="text" class="criteria" placeholder="Criteria ${criteriaContainer.children.length + 1}">`;
-    criteriaContainer.appendChild(newCriteria);
+async function commitCriteria() {
+    const rows = document.querySelectorAll('#criteria_body tr');
+    const criteria = Array.from(rows).map(row => {
+        return {
+            Name: row.cells[0].innerText,
+            Weight: row.cells[1].innerText
+        };
+    });
+
+    try {
+        const response = await fetch('/criteria', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ criteria })
+        });
+        if (response.ok) {
+            console.log('Criteria updated successfully');
+            loadCriteria();
+        } else {
+            console.error('Error updating criteria:', await response.text());
+        }
+    } catch (error) {
+        console.error('Error updating criteria:', error);
+    }
 }
 
-async function addRespondent() {
-    const name = document.querySelector('.respondent').value;
-    console.log('Adding respondent:', name);
+async function commitRespondents() {
+    const rows = document.querySelectorAll('#respondents_body tr');
+    const respondents = Array.from(rows).map(row => {
+        return { Name: row.cells[0].innerText };
+    });
 
     try {
         const response = await fetch('/respondents', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ respondents })
         });
         if (response.ok) {
-            console.log('Respondent added successfully');
+            console.log('Respondents updated successfully');
+            loadRespondents();
         } else {
-            console.error('Error adding respondent:', await response.text());
+            console.error('Error updating respondents:', await response.text());
         }
     } catch (error) {
-        console.error('Error adding respondent:', error);
+        console.error('Error updating respondents:', error);
     }
 }
 
-async function rankProjects() {
-    console.log('Ranking projects...');
-    const response = await fetch('/projects');
-    const projects = await response.json();
-    const respondents = Array.from(document.querySelectorAll('.respondent')).map(el => el.value);
-
-    // For demonstration, we'll just log the respondents and projects
-    console.log('Respondents:', respondents);
-    console.log('Projects:', projects);
-
-    // Logic for pairwise ranking and displaying results goes here
-    displayResults(projects, respondents);
-}
-
-function displayResults(projects, respondents) {
-    // Sample data for demonstration purposes
-    const data = {
-        labels: projects.map(p => p.Project),
-        datasets: [
-            {
-                label: 'Criteria 1',
-                data: projects.map(p => Math.random() * 100),
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Criteria 2',
-                data: projects.map(p => Math.random() * 100),
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }
-        ]
-    };
-
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Project Prioritization Results'
-                }
-            }
-        }
-    };
-
-    const ctx = document.getElementById('results_chart').getContext('2d');
-    new Chart(ctx, config);
+async function submitAssessment() {
+    // Logic to collect and submit the pairwise assessment data
+    console.log('Submitting assessment...');
 }
 
 function adjustPriorities() {
