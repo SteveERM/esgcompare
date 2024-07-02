@@ -33,8 +33,10 @@ async function loadProjects() {
 async function addProject() {
     const project = document.getElementById('project_name').value;
     const priority = document.getElementById('project_priority').value;
+    const criteriaElements = document.querySelectorAll('.criteria');
+    const criteria = Array.from(criteriaElements).map(el => el.value);
 
-    console.log('Adding project:', project, priority);
+    console.log('Adding project:', project, priority, criteria);
 
     try {
         const response = await fetch('/projects', {
@@ -42,7 +44,7 @@ async function addProject() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ project, priority })
+            body: JSON.stringify({ project, priority, criteria })
         });
         if (response.ok) {
             console.log('Project added successfully');
@@ -53,4 +55,93 @@ async function addProject() {
     } catch (error) {
         console.error('Error adding project:', error);
     }
+}
+
+function addCriteria() {
+    const criteriaContainer = document.getElementById('criteria_container');
+    const newCriteria = document.createElement('div');
+    newCriteria.innerHTML = `<input type="text" class="criteria" placeholder="Criteria ${criteriaContainer.children.length + 1}">`;
+    criteriaContainer.appendChild(newCriteria);
+}
+
+function addRespondent() {
+    const respondentsContainer = document.getElementById('respondents_container');
+    const newRespondent = document.createElement('div');
+    newRespondent.innerHTML = `<input type="text" class="respondent" placeholder="Respondent Name">`;
+    respondentsContainer.appendChild(newRespondent);
+}
+
+async function rankProjects() {
+    console.log('Ranking projects...');
+    const response = await fetch('/projects');
+    const projects = await response.json();
+    const respondents = Array.from(document.querySelectorAll('.respondent')).map(el => el.value);
+
+    // For demonstration, we'll just log the respondents and projects
+    console.log('Respondents:', respondents);
+    console.log('Projects:', projects);
+
+    // Logic for pairwise ranking and displaying results goes here
+    displayResults(projects, respondents);
+}
+
+function displayResults(projects, respondents) {
+    // Sample data for demonstration purposes
+    const data = {
+        labels: projects.map(p => p.Project),
+        datasets: [
+            {
+                label: 'Criteria 1',
+                data: projects.map(p => Math.random() * 100),
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Criteria 2',
+                data: projects.map(p => Math.random() * 100),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }
+        ]
+    };
+
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Project Prioritization Results'
+                }
+            }
+        }
+    };
+
+    const ctx = document.getElementById('results_chart').getContext('2d');
+    new Chart(ctx, config);
+}
+
+function adjustPriorities() {
+    const priority1 = document.getElementById('priority_criteria1').value;
+    const priority2 = document.getElementById('priority_criteria2').value;
+
+    console.log('Adjusting priorities:', priority1, priority2);
+
+    // Update chart data and refresh
+    const chart = Chart.getChart('results_chart');
+    chart.data.datasets[0].data = chart.data.datasets[0].data.map(value => value * (priority1 / 100));
+    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2 / 100));
+    chart.update();
 }
