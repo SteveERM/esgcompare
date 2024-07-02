@@ -18,7 +18,9 @@ const config = {
     options: {
         encrypt: true, // Use this if you're on Windows Azure
         trustServerCertificate: true // Change to true for local dev / self-signed certs
-    }
+    },
+    connectionTimeout: 30000, // 30 seconds
+    requestTimeout: 30000 // 30 seconds
 };
 
 // Test database connection
@@ -48,20 +50,52 @@ app.post('/projects', async (req, res) => {
     const { project, priority, criteria } = req.body;
     try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
+        const projectResult = await pool.request()
             .input('project', sql.VarChar, project)
             .input('priority', sql.Int, priority)
-            .input('criteria', sql.VarChar, JSON.stringify(criteria))
-            .query('INSERT INTO Projects (Project, Priority, Criteria) VALUES (@project, @priority, @criteria)');
+            .query('INSERT INTO Projects (Project, Priority) OUTPUT Inserted.ID VALUES (@project, @priority)');
+
+        const projectId = projectResult.recordset[0].ID;
+
+        for (const crit of criteria) {
+            await pool.request()
+                .input('name', sql.VarChar, crit)
+                .query('INSERT INTO Criteria (Name) VALUES (@name)');
+        }
+
+        res.send(projectResult);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.post('/respondents', async (req, res) => {
+    const { name } = req.body;
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('name', sql.VarChar, name)
+            .query('INSERT INTO Respondents (Name) VALUES (@name)');
         res.send(result);
     } catch (error) {
         res.status(500).send(error);
     }
 });
 
-// Endpoint to check Node.js version
-app.get('/version', (req, res) => {
-    res.send(`Node.js version: ${process.version}`);
+app.post('/rankings', async (req, res) => {
+    const { projectId, respondentId, criteriaId, rank } = req.body;
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('projectId', sql.Int, projectId)
+            .input('respondentId', sql.Int, respondentId)
+            .input('criteriaId', sql.Int, criteriaId)
+            .input('rank', sql.Int, rank)
+            .query('INSERT INTO ProjectRankings (ProjectID, RespondentID, CriteriaID, Rank) VALUES (@projectId, @respondentId, @criteriaId, @rank)');
+        res.send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
 app.listen(PORT, () => {
