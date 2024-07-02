@@ -64,11 +64,26 @@ function addCriteria() {
     criteriaContainer.appendChild(newCriteria);
 }
 
-function addRespondent() {
-    const respondentsContainer = document.getElementById('respondents_container');
-    const newRespondent = document.createElement('div');
-    newRespondent.innerHTML = `<input type="text" class="respondent" placeholder="Respondent Name">`;
-    respondentsContainer.appendChild(newRespondent);
+async function addRespondent() {
+    const name = document.querySelector('.respondent').value;
+    console.log('Adding respondent:', name);
+
+    try {
+        const response = await fetch('/respondents', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        });
+        if (response.ok) {
+            console.log('Respondent added successfully');
+        } else {
+            console.error('Error adding respondent:', await response.text());
+        }
+    } catch (error) {
+        console.error('Error adding respondent:', error);
+    }
 }
 
 async function rankProjects() {
@@ -142,6 +157,4 @@ function adjustPriorities() {
     // Update chart data and refresh
     const chart = Chart.getChart('results_chart');
     chart.data.datasets[0].data = chart.data.datasets[0].data.map(value => value * (priority1 / 100));
-    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2 / 100));
-    chart.update();
-}
+    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2
