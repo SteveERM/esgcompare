@@ -18,9 +18,7 @@ const config = {
     options: {
         encrypt: true, // Use this if you're on Windows Azure
         trustServerCertificate: true // Change to true for local dev / self-signed certs
-    },
-    connectionTimeout: 30000, // 30 seconds
-    requestTimeout: 30000 // 30 seconds
+    }
 };
 
 // Test database connection
@@ -47,36 +45,70 @@ app.get('/projects', async (req, res) => {
 });
 
 app.post('/projects', async (req, res) => {
-    const { project, priority, criteria } = req.body;
+    const { projects } = req.body;
     try {
         const pool = await sql.connect(config);
-        const projectResult = await pool.request()
-            .input('project', sql.VarChar, project)
-            .input('priority', sql.Int, priority)
-            .query('INSERT INTO Projects (Project, Priority) OUTPUT Inserted.ID VALUES (@project, @priority)');
-
-        const projectId = projectResult.recordset[0].ID;
-
-        for (const crit of criteria) {
+        await pool.request().query('DELETE FROM Projects'); // Clear existing data
+        for (const project of projects) {
             await pool.request()
-                .input('name', sql.VarChar, crit)
-                .query('INSERT INTO Criteria (Name) VALUES (@name)');
+                .input('project', sql.VarChar, project.Project)
+                .input('priority', sql.Int, project.Priority)
+                .query('INSERT INTO Projects (Project, Priority) VALUES (@project, @priority)');
         }
+        res.send({ message: 'Projects updated successfully' });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
-        res.send(projectResult);
+app.get('/criteria', async (req, res) => {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request().query('SELECT * FROM Criteria');
+        res.send(result.recordset);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.post('/criteria', async (req, res) => {
+    const { criteria } = req.body;
+    try {
+        const pool = await sql.connect(config);
+        await pool.request().query('DELETE FROM Criteria'); // Clear existing data
+        for (const criterion of criteria) {
+            await pool.request()
+                .input('name', sql.VarChar, criterion.Name)
+                .input('weight', sql.Int, criterion.Weight)
+                .query('INSERT INTO Criteria (Name, Weight) VALUES (@name, @weight)');
+        }
+        res.send({ message: 'Criteria updated successfully' });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.get('/respondents', async (req, res) => {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request().query('SELECT * FROM Respondents');
+        res.send(result.recordset);
     } catch (error) {
         res.status(500).send(error);
     }
 });
 
 app.post('/respondents', async (req, res) => {
-    const { name } = req.body;
+    const { respondents } = req.body;
     try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
-            .input('name', sql.VarChar, name)
-            .query('INSERT INTO Respondents (Name) VALUES (@name)');
-        res.send(result);
+        await pool.request().query('DELETE FROM Respondents'); // Clear existing data
+        for (const respondent of respondents) {
+            await pool.request()
+                .input('name', sql.VarChar, respondent.Name)
+                .query('INSERT INTO Respondents (Name) VALUES (@name)');
+        }
+        res.send({ message: 'Respondents updated successfully' });
     } catch (error) {
         res.status(500).send(error);
     }
