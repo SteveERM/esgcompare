@@ -30,7 +30,7 @@ sql.connect(config).then(pool => {
 
 // Serve the index.html file at the root URL
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // API endpoints
@@ -56,6 +56,11 @@ app.post('/projects', async (req, res) => {
     } catch (error) {
         res.status(500).send(error);
     }
+});
+
+// Endpoint to check Node.js version
+app.get('/version', (req, res) => {
+    res.send(`Node.js version: ${process.version}`);
 });
 
 app.listen(PORT, () => {
