@@ -28,6 +28,11 @@ sql.connect(config).then(pool => {
     }
 }).catch(err => console.log('Database connection failed: ', err));
 
+// Serve the index.html file at the root URL
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // API endpoints
 app.get('/projects', async (req, res) => {
     try {
