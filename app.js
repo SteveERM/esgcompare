@@ -115,16 +115,29 @@ app.post('/respondents', async (req, res) => {
 });
 
 app.post('/rankings', async (req, res) => {
-    const { projectId, respondentId, criteriaId, rank } = req.body;
+    const { results } = req.body;
     try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
-            .input('projectId', sql.Int, projectId)
-            .input('respondentId', sql.Int, respondentId)
-            .input('criteriaId', sql.Int, criteriaId)
-            .input('rank', sql.Int, rank)
-            .query('INSERT INTO ProjectRankings (ProjectID, RespondentID, CriteriaID, Rank) VALUES (@projectId, @respondentId, @criteriaId, @rank)');
-        res.send(result);
+        for (const result of results) {
+            await pool.request()
+                .input('projectId1', sql.Int, result.projectId1)
+                .input('projectId2', sql.Int, result.projectId2)
+                .input('criteriaId', sql.Int, result.criteriaId)
+                .input('respondentId', sql.Int, result.respondentId)
+                .input('rank', sql.Int, result.rank)
+                .query('INSERT INTO ProjectRankings (ProjectID1, ProjectID2, CriteriaID, RespondentID, Rank) VALUES (@projectId1, @projectId2, @criteriaId, @respondentId, @rank)');
+        }
+        res.send({ message: 'Rankings updated successfully' });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+app.get('/rankings', async (req, res) => {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request().query('SELECT * FROM ProjectRankings');
+        res.json(result.recordset); // Ensure it returns JSON
     } catch (error) {
         res.status(500).send(error);
     }
