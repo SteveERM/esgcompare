@@ -17,7 +17,9 @@ const config = {
     database: process.env.DB_NAME,
     options: {
         encrypt: true, // Use this if you're on Windows Azure
-        trustServerCertificate: true // Change to true for local dev / self-signed certs
+        trustServerCertificate: true, // Change to true for local dev / self-signed certs
+        connectTimeout: 30000, // 30 seconds
+        requestTimeout: 30000 // 30 seconds
     }
 };
 
