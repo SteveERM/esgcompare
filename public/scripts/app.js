@@ -77,6 +77,24 @@ async function loadRespondents() {
     }
 }
 
+// Add new row functions
+function addCriteriaRow() {
+    const criteriaBody = document.getElementById('criteria_body');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+    `;
+    criteriaBody.appendChild(row);
+}
+
+function addRespondentRow() {
+    const respondentsBody = document.getElementById('respondents_body');
+    const row = document.createElement('tr');
+    row.innerHTML = `<td contenteditable="true"></td>`;
+    respondentsBody.appendChild(row);
+}
+
 // Commit changes
 async function commitProjects() {
     const rows = document.querySelectorAll('#projects_body tr');
@@ -220,8 +238,13 @@ function adjustPriorities() {
 
     // Update chart data and refresh
     if (resultsChart) {
-        resultsChart.data.datasets[0].data = resultsChart.data.datasets[0].data.map(value => value * (priority1 / 100));
-        resultsChart.data.datasets[1].data = resultsChart.data.datasets[1].data.map(value => value * (priority2 / 100));
+        resultsChart.data.datasets.forEach((dataset, index) => {
+            if (index === 0) {
+                dataset.data = dataset.data.map(value => value * (priority1 / 100));
+            } else if (index === 1) {
+                dataset.data = dataset.data.map(value => value * (priority2 / 100));
+            }
+        });
         resultsChart.update();
     }
 }
