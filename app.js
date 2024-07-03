@@ -17,9 +17,7 @@ const config = {
     database: process.env.DB_NAME,
     options: {
         encrypt: true, // Use this if you're on Windows Azure
-        trustServerCertificate: true, // Change to true for local dev / self-signed certs
-        connectTimeout: 30000, // 30 seconds
-        requestTimeout: 30000 // 30 seconds
+        trustServerCertificate: true // Change to true for local dev / self-signed certs
     }
 };
 
@@ -40,7 +38,7 @@ app.get('/projects', async (req, res) => {
     try {
         const pool = await sql.connect(config);
         const result = await pool.request().query('SELECT * FROM Projects');
-        res.send(result.recordset);
+        res.json(result.recordset); // Ensure it returns JSON
     } catch (error) {
         res.status(500).send(error);
     }
@@ -67,7 +65,7 @@ app.get('/criteria', async (req, res) => {
     try {
         const pool = await sql.connect(config);
         const result = await pool.request().query('SELECT * FROM Criteria');
-        res.send(result.recordset);
+        res.json(result.recordset); // Ensure it returns JSON
     } catch (error) {
         res.status(500).send(error);
     }
@@ -94,7 +92,7 @@ app.get('/respondents', async (req, res) => {
     try {
         const pool = await sql.connect(config);
         const result = await pool.request().query('SELECT * FROM Respondents');
-        res.send(result.recordset);
+        res.json(result.recordset); // Ensure it returns JSON
     } catch (error) {
         res.status(500).send(error);
     }
