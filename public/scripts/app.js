@@ -198,6 +198,7 @@ async function submitAssessment() {
         if (response.ok) {
             console.log('Assessment submitted successfully');
             loadAssessment();
+            updateChart();
         } else {
             console.error('Error submitting assessment:', await response.text());
         }
@@ -235,7 +236,6 @@ function createChart() {
 }
 
 function displayResults(projects, criteria) {
-    // Sample data for demonstration purposes
     const data = {
         labels: projects.map(p => p.Project),
         datasets: criteria.map((criterion, index) => ({
@@ -286,10 +286,46 @@ function loadAssessment() {
                 row.innerHTML = `
                     <div>${criteria.Name}</div>
                     <div>${project1.Project} vs ${project2.Project}</div>
-                    <input type="number" min="1" max="5" step="1">
+                    <input type="number" min="1" max="5" step="1" value="3">
                 `;
                 assessmentContainer.appendChild(row);
             });
         });
     });
+}
+
+async function updateChart() {
+    try {
+        const response = await fetch('/rankings');
+        const rankings = await response.json();
+        
+        const projectScores = {};
+        projectData.forEach(project => {
+            projectScores[project.ID] = {};
+            criteriaData.forEach(criteria => {
+                projectScores[project.ID][criteria.CriteriaID] = 0;
+            });
+        });
+
+        rankings.forEach(ranking => {
+            projectScores[ranking.projectId1][ranking.criteriaId] += ranking.rank;
+            projectScores[ranking.projectId2][ranking.criteriaId] -= ranking.rank;
+        });
+
+        const data = {
+            labels: projectData.map(p => p.Project),
+            datasets: criteriaData.map((criteria, index) => ({
+                label: criteria.Name,
+                data: projectData.map(project => projectScores[project.ID][criteria.CriteriaID]),
+                backgroundColor: `rgba(${index * 60}, 99, 132, 0.2)`,
+                borderColor: `rgba(${index * 60}, 99, 132, 1)`,
+                borderWidth: 1
+            }))
+        };
+
+        resultsChart.data = data;
+        resultsChart.update();
+    } catch (error) {
+        console.error('Error updating chart:', error);
+    }
 }
