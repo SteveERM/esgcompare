@@ -313,8 +313,8 @@ async function updateChart() {
         });
 
         rankings.forEach(ranking => {
-            projectScores[ranking.projectId1][ranking.criteriaId] += ranking.rank;
-            projectScores[ranking.projectId2][ranking.criteriaId] -= ranking.rank;
+            projectScores[ranking.ProjectID1][ranking.CriteriaID] += ranking.Rank;
+            projectScores[ranking.ProjectID2][ranking.CriteriaID] -= ranking.Rank;
         });
 
         const data = {
