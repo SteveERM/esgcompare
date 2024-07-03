@@ -298,7 +298,12 @@ async function updateChart() {
     try {
         const response = await fetch('/rankings');
         const rankings = await response.json();
-        
+
+        if (!Array.isArray(rankings)) {
+            console.error('Rankings response is not an array:', rankings);
+            return;
+        }
+
         const projectScores = {};
         projectData.forEach(project => {
             projectScores[project.ID] = {};
@@ -327,5 +332,8 @@ async function updateChart() {
         resultsChart.update();
     } catch (error) {
         console.error('Error updating chart:', error);
+        if (error.response) {
+            console.error('Error response:', await error.response.text());
+        }
     }
 }
