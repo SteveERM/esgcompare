@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProjects();
     loadCriteria();
     loadRespondents();
+    createChart();
 });
+
+let resultsChart;
 
 function openTab(evt, tabName) {
     var i, tabcontent, tablinks;
@@ -155,6 +158,60 @@ async function submitAssessment() {
     console.log('Submitting assessment...');
 }
 
+function createChart() {
+    const ctx = document.getElementById('results_chart').getContext('2d');
+    resultsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Project Prioritization Results'
+                }
+            }
+        }
+    });
+}
+
+function displayResults(projects, respondents) {
+    // Sample data for demonstration purposes
+    const data = {
+        labels: projects.map(p => p.Project),
+        datasets: [
+            {
+                label: 'Criteria 1',
+                data: projects.map(p => Math.random() * 100),
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Criteria 2',
+                data: projects.map(p => Math.random() * 100),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }
+        ]
+    };
+
+    resultsChart.data = data;
+    resultsChart.update();
+}
+
 function adjustPriorities() {
     const priority1 = document.getElementById('priority_criteria1').value;
     const priority2 = document.getElementById('priority_criteria2').value;
@@ -162,8 +219,9 @@ function adjustPriorities() {
     console.log('Adjusting priorities:', priority1, priority2);
 
     // Update chart data and refresh
-    const chart = Chart.getChart('results_chart');
-    chart.data.datasets[0].data = chart.data.datasets[0].data.map(value => value * (priority1 / 100));
-    chart.data.datasets[1].data = chart.data.datasets[1].data.map(value => value * (priority2 / 100));
-    chart.update();
+    if (resultsChart) {
+        resultsChart.data.datasets[0].data = resultsChart.data.datasets[0].data.map(value => value * (priority1 / 100));
+        resultsChart.data.datasets[1].data = resultsChart.data.datasets[1].data.map(value => value * (priority2 / 100));
+        resultsChart.update();
+    }
 }
